@@ -37,8 +37,11 @@ isLegal grid (x, y) n = all (\k -> k /= n) [getItem grid (i, j) | (i, j)<-fromJu
 legals :: [[Int]] -> (Int, Int) -> [Int]
 legals grid (x, y) = [n | n<-[1..9], isLegal grid (x, y) n]
 
-placeList :: [a] -> Int -> Int -> [a]
-placeList xs pos val = [0] --todo
+placeList :: [a] -> Int -> a -> [a]
+placeList [] _ _ = []
+placeList hd:tl pos val
+    | pos == 0  = val:tl
+    | otherwise = hd:(placeList tl pos-1 val)
 
 backtrack :: [[Int]] -> [[Int]]
 backtrack grid
