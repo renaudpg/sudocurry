@@ -2,7 +2,7 @@ import Data.Map
 import Data.List
 import Data.Maybe (fromJust)
 
-main = print $ --legals (replicate 9 (replicate 9 0)) (3, 3)
+main = print $ "hi"
 
 gRange = [0..8]
 
@@ -39,11 +39,14 @@ legals grid (x, y) = [n | n<-[1..9], isLegal grid (x, y) n]
 
 placeList :: [a] -> Int -> a -> [a]
 placeList [] _ _ = []
-placeList hd:tl pos val
+placeList (hd:tl) pos val
     | pos == 0  = val:tl
-    | otherwise = hd:(placeList tl pos-1 val)
+    | otherwise = hd:(placeList tl (pos-1) val)
+
+placeGrid :: [[a]] -> (Int, Int) -> a -> [[a]]
+placeGrid grid (x, y) val = placeList grid y (placeList (grid!!y) x val)
 
 backtrack :: [[Int]] -> [[Int]]
 backtrack grid
-    | empties grid == [] = return grid
+    | empties grid == [] = grid
     | otherwise = [[0]] --todo
