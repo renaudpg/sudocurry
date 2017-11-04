@@ -1,8 +1,9 @@
 import Data.Map
 import Data.List
 import Data.Maybe (fromJust, isJust)
+import Control.Monad
 
-main = print $ let g = [[6,4,1,8,5,9,3,2,7],[7,2,9,4,3,6,8,1,5],[5,3,8,2,7,1,6,4,9],[9,5,6,1,2,3,7,8,4],[4,7,2,6,8,5,9,3,1],[8,1,3,9,4,7,2,5,6],[2,8,5,7,9,4,1,0,3],[3,6,7,5,1,2,4,9,8],[1,9,4,0,6,8,5,7,2]] in backtrack g
+main = print $ let g = (replicate 9 (replicate 9 0)) in backtrack g
 
 gRange = [0..8]
 
@@ -53,4 +54,5 @@ backtrack :: [[Int]] -> Maybe [[Int]]
 backtrack grid
     | Data.List.null $ empties grid = Just grid
     | Data.List.null $ legals grid (head (empties grid)) = Nothing
-    | otherwise = fromJust (find (\g -> isJust g) (solList grid))
+    | otherwise = msum (solList grid)
+
