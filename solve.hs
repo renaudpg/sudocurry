@@ -2,7 +2,7 @@ import Data.Map
 import Data.List
 import Data.Maybe (fromJust)
 
-main = print $ "hi"
+main = print $ let g = [[0|_<-[0..8]]|_<-[0..8]] in head(empties g)
 
 gRange = [0..8]
 
@@ -46,11 +46,11 @@ placeList (hd:tl) pos val
 placeGrid :: [[a]] -> (Int, Int) -> a -> [[a]]
 placeGrid grid (x, y) val = placeList grid y (placeList (grid!!y) x val)
 
-solList :: Maybe [[Int]] -> [Maybe [[Int]]]
-solList grid = let fe = head' (empties grid) in [backtrack (placeGrid grid fe val) | val <- legals grid fe]
+solList :: [[Int]] -> [Maybe [[Int]]]
+solList grid = let fe = head (empties grid) in [backtrack (placeGrid grid fe val) | val <- (legals grid fe)]
 
-backtrack :: Maybe [[Int]] -> Maybe [[Int]]
+backtrack :: [[Int]] -> Maybe [[Int]]
 backtrack grid
-    | empties grid == [] = grid
-    | legals (head' (empties grid)) == [] = Nothing
-    | otherwise = find (\g: g /= Nothing) (solList grid)
+    | empties grid == [] = Just grid
+    | legals grid (head (empties grid)) == [] = Nothing
+    | otherwise = fromJust (find (\g -> g /= Nothing) (solList grid)) 
