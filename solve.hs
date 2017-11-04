@@ -46,7 +46,11 @@ placeList (hd:tl) pos val
 placeGrid :: [[a]] -> (Int, Int) -> a -> [[a]]
 placeGrid grid (x, y) val = placeList grid y (placeList (grid!!y) x val)
 
-backtrack :: [[Int]] -> [[Int]]
+solList :: Maybe [[Int]] -> [Maybe [[Int]]]
+solList grid = let fe = head' (empties grid) in [backtrack (placeGrid grid fe val) | val <- legals grid fe]
+
+backtrack :: Maybe [[Int]] -> Maybe [[Int]]
 backtrack grid
     | empties grid == [] = grid
-    | otherwise = [[0]] --todo
+    | legals (head' (empties grid)) == [] = Nothing
+    | otherwise = find (\g: g /= Nothing) (solList grid)
