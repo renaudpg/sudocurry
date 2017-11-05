@@ -2,8 +2,12 @@ import Data.Map
 import Data.List
 import Data.Maybe (fromJust, isJust)
 import Control.Monad
+import Data.Char
+import System.Environment
 
-main = print $ let g = (replicate 9 (replicate 9 0)) in backtrack g
+main = do 
+    args <- getArgs
+    print $ backtrack (greshape (stol (head args)))
 
 gRange = [0..8]
 
@@ -56,3 +60,9 @@ backtrack grid
     | Data.List.null $ legals grid (head (empties grid)) = Nothing
     | otherwise = msum (solList grid)
 
+stol :: String -> [Int]
+stol = Data.List.map Data.Char.digitToInt
+
+greshape :: [Int] -> [[Int]]
+greshape [] = []
+greshape l = take 9 l : greshape (drop 9 l)
