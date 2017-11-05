@@ -7,7 +7,7 @@ import System.Environment
 
 main = do 
     args <- getArgs
-    print $ backtrack (greshape (stol (head args)))
+    mapM_ putStrLn ((gprettify . fromJust . backtrack . greshape . stol) (head args))
 
 gRange = [0..8]
 
@@ -66,3 +66,7 @@ stol = Data.List.map Data.Char.digitToInt
 greshape :: [Int] -> [[Int]]
 greshape [] = []
 greshape l = take 9 l : greshape (drop 9 l)
+
+gprettify :: [[Int]] -> [String]
+gprettify grid = Data.List.map flatten grid
+    where flatten = Data.List.map Data.Char.intToDigit
