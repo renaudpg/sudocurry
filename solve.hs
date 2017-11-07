@@ -1,11 +1,11 @@
-import Data.Map
-import Data.List
+import Data.Map as DM
+import Data.List as DL
 import Data.Maybe (fromJust, isJust)
 import Control.Monad
-import Data.Char
+import Data.Char as DC
 import System.Environment
 
-main = do 
+main = do
     args <- getArgs
     mapM_ putStrLn ((gprettify . fromJust . backtrack . greshape . stol) (head args))
 
@@ -26,10 +26,6 @@ peers x y = [tup | tup<-(nub $ colList x ++ rowList y ++ secList x y), tup /= (x
 
 peerMap = fromList [((x, y), peers x y) | x<-gRange, y<-gRange]
 
-head' :: [a] -> Maybe a
-head' [] = Nothing
-head' (x:xs) = Just x
-
 getItem :: [[a]] -> (Int, Int) -> a
 getItem xs (x, y) = xs!!y!!x
 
@@ -37,7 +33,7 @@ empties :: [[Int]] -> [(Int, Int)]
 empties grid = [(x, y) | x<-gRange, y<-gRange, getItem grid (x, y) == 0]
 
 isLegal :: [[Int]] -> (Int, Int) -> Int -> Bool
-isLegal grid (x, y) n = all (\k -> k /= n) [getItem grid (i, j) | (i, j)<-fromJust(Data.Map.lookup (x, y) peerMap)]
+isLegal grid (x, y) n = all (\k -> k /= n) [getItem grid (i, j) | (i, j)<-fromJust(DM.lookup (x, y) peerMap)]
 
 legals :: [[Int]] -> (Int, Int) -> [Int]
 legals grid (x, y) = [n | n<-[1..9], isLegal grid (x, y) n]
@@ -56,17 +52,17 @@ solList grid = let fe = head (empties grid) in [backtrack (placeGrid grid fe val
 
 backtrack :: [[Int]] -> Maybe [[Int]]
 backtrack grid
-    | Data.List.null $ empties grid = Just grid
-    | Data.List.null $ legals grid (head (empties grid)) = Nothing
+    | DL.null $ empties grid = Just grid
+    | DL.null $ legals grid (head (empties grid)) = Nothing
     | otherwise = msum (solList grid)
 
 stol :: String -> [Int]
-stol = Data.List.map Data.Char.digitToInt
+stol = DL.map DC.digitToInt
 
 greshape :: [Int] -> [[Int]]
 greshape [] = []
 greshape l = take 9 l : greshape (drop 9 l)
 
 gprettify :: [[Int]] -> [String]
-gprettify grid = Data.List.map flatten grid
-    where flatten = Data.List.map Data.Char.intToDigit
+gprettify grid = DL.map flatten grid
+    where flatten = DL.map DC.intToDigit
