@@ -1,68 +1,71 @@
-import Data.Map as DM
-import Data.List as DL
+import Data.Map as Map
+import Data.List as List
 import Data.Maybe (fromJust, isJust)
 import Control.Monad
-import Data.Char as DC
+import Data.Char as Char
 import System.Environment
+
+type Coord = (Int, Int)
+type Row = [Int]
+type Sudoku = [Row]
 
 main = do
     args <- getArgs
-    mapM_ putStrLn ((gprettify . fromJust . backtrack . greshape . stol) (head args))
+    mapM_ putStrLn ((format . fromJust . backtrack . reshape . parse) (head args))
 
-gRange = [0..8]
+range = [0..8]
 
+peersInColumn x = [(x, y) | y<-range]
 
-colList x = [(x, y) | y<-gRange]
+peersInRow y = [(x, y) | x<-range]
 
-rowList y = [(x, y) | x<-gRange]
+sectionIndex n = n - (n `mod` 3)
 
-threeFloor n = n - (n `mod` 3)
+sectionRange coord = let n = sectionIndex coord in [n..n+2]
 
-secRange coord = let n = threeFloor coord in [n..n+2]
+peersInSection x y = [(i, j)| i<-(sectionRange x), j<-(sectionRange y)]
 
-secList x y = [(i, j)| i<-(secRange x), j<-(secRange y)]
+peersOf x y = [tup | tup<-(nub $ peersInColumn x ++ peersInRow y ++ peersInSection x y), tup /= (x,y)]
 
-peers x y = [tup | tup<-(nub $ colList x ++ rowList y ++ secList x y), tup /= (x,y)]
+peers = fromList [((x, y), peersOf x y) | x<-range, y<-range]
 
-peerMap = fromList [((x, y), peers x y) | x<-gRange, y<-gRange]
+digitAt :: Sudoku -> Coord -> Int
+digitAt xs (x, y) = xs!!y!!x
 
-getItem :: [[a]] -> (Int, Int) -> a
-getItem xs (x, y) = xs!!y!!x
+empties :: Sudoku -> [Coord]
+empties sudoku = [(x, y) | x<-range, y<-range, digitAt sudoku (x, y) == 0]
 
-empties :: [[Int]] -> [(Int, Int)]
-empties grid = [(x, y) | x<-gRange, y<-gRange, getItem grid (x, y) == 0]
+isLegal :: Sudoku -> Coord -> Int -> Bool
+isLegal sudoku (x, y) n = all (\k -> k /= n) [digitAt sudoku (i, j) | (i, j)<-fromJust(Map.lookup (x, y) peers)]
 
-isLegal :: [[Int]] -> (Int, Int) -> Int -> Bool
-isLegal grid (x, y) n = all (\k -> k /= n) [getItem grid (i, j) | (i, j)<-fromJust(DM.lookup (x, y) peerMap)]
+legalMovesAt :: Sudoku -> Coord -> [Int]
+legalMovesAt sudoku (x, y) = [n | n<-[1..9], isLegal sudoku (x, y) n]
 
-legals :: [[Int]] -> (Int, Int) -> [Int]
-legals grid (x, y) = [n | n<-[1..9], isLegal grid (x, y) n]
-
-placeList :: [a] -> Int -> a -> [a]
-placeList [] _ _ = []
-placeList (hd:tl) pos val
+insertIn :: [a] -> Int -> a -> [a]
+insertIn [] _ _ = []
+insertIn (hd:tl) pos val
     | pos == 0  = val:tl
-    | otherwise = hd:(placeList tl (pos-1) val)
+    | otherwise = hd:(insertIn tl (pos-1) val)
 
-placeGrid :: [[a]] -> (Int, Int) -> a -> [[a]]
-placeGrid grid (x, y) val = placeList grid y (placeList (grid!!y) x val)
+move :: Sudoku -> Coord -> Int -> Sudoku
+move sudoku (x, y) val = insertIn sudoku y (insertIn (sudoku!!y) x val)
 
-solList :: [[Int]] -> [Maybe [[Int]]]
-solList grid = let fe = head (empties grid) in [backtrack (placeGrid grid fe val) | val <- (legals grid fe)]
+solutions :: Sudoku -> [Maybe Sudoku]
+solutions sudoku = let empty = head (empties sudoku) in [backtrack (move sudoku empty val) | val <- (legalMovesAt sudoku empty)]
 
-backtrack :: [[Int]] -> Maybe [[Int]]
-backtrack grid
-    | DL.null $ empties grid = Just grid
-    | DL.null $ legals grid (head (empties grid)) = Nothing
-    | otherwise = msum (solList grid)
+backtrack :: Sudoku -> Maybe Sudoku
+backtrack sudoku
+    | List.null $ empties sudoku = Just sudoku
+    | List.null $ legalMovesAt sudoku (head (empties sudoku)) = Nothing
+    | otherwise = msum (solutions sudoku)
 
-stol :: String -> [Int]
-stol = DL.map DC.digitToInt
+parse :: String -> [Int]
+parse = List.map Char.digitToInt
 
-greshape :: [Int] -> [[Int]]
-greshape [] = []
-greshape l = take 9 l : greshape (drop 9 l)
+reshape :: [Int] -> Sudoku
+reshape [] = []
+reshape l = List.take 9 l : reshape (List.drop 9 l)
 
-gprettify :: [[Int]] -> [String]
-gprettify grid = DL.map flatten grid
-    where flatten = DL.map DC.intToDigit
+format :: Sudoku -> [String]
+format sudoku = List.map flatten sudoku
+    where flatten = List.map Char.intToDigit
